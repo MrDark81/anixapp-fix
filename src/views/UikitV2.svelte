@@ -1184,7 +1184,7 @@
             releaseHint: 'к релизу',
           } satisfies UiV2CommentNode;
         })
-        .filter((x): x is UiV2CommentNode => !!x);
+        .filter((x): x is UiV2CommentNode & { id: number } => x != null);
       if (mapped.length) commentWeek = mapped;
     } catch {
       /* keep fallback */

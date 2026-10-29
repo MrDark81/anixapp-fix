@@ -172,7 +172,17 @@ async function loadKodikPlayer(embedUrl: string) {
   if (!videoInfo?.hash || !videoInfo.id || !videoInfo.type) {
     return { links: null, skip };
   }
-  const resolvedVideoInfo = { type: videoInfo.type, id: videoInfo.id, hash: videoInfo.hash };
+  const videoInfoType = videoInfo?.type;
+  const videoInfoId = videoInfo?.id;
+  const videoInfoHash = videoInfo?.hash;
+  if (
+    typeof videoInfoType !== 'string' || !videoInfoType
+    || typeof videoInfoId !== 'string' || !videoInfoId
+    || typeof videoInfoHash !== 'string' || !videoInfoHash
+  ) {
+    return { links: null, skip };
+  }
+  const resolvedVideoInfo = { type: videoInfoType, id: videoInfoId, hash: videoInfoHash };
   let links = null as ReturnType<typeof decryptKodikLinks> | null;
   try {
     links = await fetchKodikFtorLinks(pageUrl, resolvedVideoInfo);

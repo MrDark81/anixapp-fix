@@ -942,7 +942,7 @@
 
   function liveCrtEffect(): (AdEffect & { type: 'crt' }) | null {
     const fx = selected?.effects?.find((e) => e.type === 'crt');
-    return fx && fx.type === 'crt' ? fx : null;
+    return fx && fx.type === 'crt' ? (fx as AdEffect & { type: 'crt' }) : null;
   }
 
   function liveCrtParams() {

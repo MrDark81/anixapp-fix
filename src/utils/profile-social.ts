@@ -76,7 +76,6 @@ export async function openSocialLink(link: ProfileSocialLink): Promise<'copied' 
     }
   }
   if (link.href) {
-    const { requestOpenExternal } = require('./external-link') as typeof import('./external-link');
     requestOpenExternal(link.href);
     return 'opened';
   }

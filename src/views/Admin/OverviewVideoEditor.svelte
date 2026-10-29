@@ -1154,11 +1154,28 @@
   onMount(async () => {
     try {
       await initAnixbackEndpoint();
-      const p = await window.electron?.getOverviewEditorPayload?.();
-      if (!p?.adminToken || !p?.bannerId) throw new Error('Нет данных редактора');
-      payload = p as OverviewEditorPayload;
+      const rawPayload = await window.electron?.getOverviewEditorPayload?.();
+      if (
+        !rawPayload
+        || typeof rawPayload.adminToken !== 'string'
+        || !rawPayload.adminToken.trim()
+        || !Number.isFinite(Number(rawPayload.bannerId))
+        || Number(rawPayload.bannerId) <= 0
+      ) {
+        throw new Error('Нет данных редактора');
+      }
+      const p: OverviewEditorPayload = {
+        bannerId: Number(rawPayload.bannerId),
+        releaseId: rawPayload.releaseId == null ? null : Number(rawPayload.releaseId),
+        title: typeof rawPayload.title === 'string' ? rawPayload.title : '',
+        segments: Array.isArray(rawPayload.segments) ? rawPayload.segments as VideoSegment[] : [],
+        sourceVideoUrl: typeof rawPayload.sourceVideoUrl === 'string' ? rawPayload.sourceVideoUrl : null,
+        adminToken: rawPayload.adminToken,
+        crossfade: typeof rawPayload.crossfade === 'number' ? rawPayload.crossfade : undefined,
+      };
+      payload = p;
       setAdminToken(p.adminToken);
-      segments = (p.segments ?? []).map((s: VideoSegment) => ({ ...s }));
+      segments = p.segments.map((s) => ({ ...s }));
       crossfade = p.crossfade ?? 0.5;
 
       if (p.sourceVideoUrl) {

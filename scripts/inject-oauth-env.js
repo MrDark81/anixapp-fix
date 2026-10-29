@@ -42,7 +42,7 @@ if (isTestBuild && (!firebaseKey || !proxyKey)) {
 
 const dest = path.join(__dirname, '..', 'electron', 'lib', 'oauth-env.generated.js');
 const body =
-  `'use strict';\\n` +
+  `'use strict';\n` +
   `module.exports = ${JSON.stringify(
     {
       FIREBASE_API_KEY: firebaseKey,
@@ -50,6 +50,6 @@ const body =
     },
     null,
     2,
-  )};\\n`;
+  )};\n`;
 fs.writeFileSync(dest, body, 'utf8');
 console.log('oauth-env.generated.js записан (FIREBASE_API_KEY, ANIXART_PROXY_APP_KEY)');

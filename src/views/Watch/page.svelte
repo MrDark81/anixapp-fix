@@ -1962,7 +1962,7 @@
         return;
       }
       setOrigEpisodeUrl(episode.url);
-      const { playUrl: pUrl, useVideo: uv, qualityMap, currentQuality: cq, skip, error: resolveError } = await core.resolve(episode.url, episode.iframe);
+      const { playUrl: pUrl, useVideo: uv, qualityMap, currentQuality: cq, skip, error: resolveError } = await core.resolve(episode.url, episode.iframe ?? false);
       if (myGen !== episodeLoadGen) return;
       setSkipMarks(skip, { carry: true });
       const resolved = applyQualityMap(qualityMap, cq, pUrl, { resetManualLock: true });
@@ -3930,7 +3930,7 @@
         }
 
         setOrigEpisodeUrl(episode.url);
-        const { playUrl: pUrl, useVideo: uv, qualityMap, currentQuality: cq, skip, error: resolveError } = await core.resolve(episode.url, episode.iframe);
+        const { playUrl: pUrl, useVideo: uv, qualityMap, currentQuality: cq, skip, error: resolveError } = await core.resolve(episode.url, episode.iframe ?? false);
         const resolved = applyQualityMap(qualityMap, cq, pUrl, { resetManualLock: true });
         setSkipMarks(skip, { carry: true });
         player.loadState = 'ready';

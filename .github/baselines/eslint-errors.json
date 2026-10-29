@@ -5,13 +5,13 @@
     {
       "file": "electron/windows/player.js",
       "ruleId": "no-useless-escape",
-      "message": "Unnecessary escape character: \\.",
+      "message": "Unnecessary escape character: \\..",
       "count": 1
     },
     {
       "file": "electron/windows/player.js",
       "ruleId": "no-useless-escape",
-      "message": "Unnecessary escape character: \\/",
+      "message": "Unnecessary escape character: \\/.",
       "count": 1
     }
   ]

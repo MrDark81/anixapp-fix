@@ -2,13 +2,12 @@
 name: Windows Test Build
 
 on:
-  # Проверять ветки при отправке изменений,
-  # в том числе до создания Pull Request.
+  # Проверять изменения при отправке коммитов в ветки.
   push:
     branches:
       - '**'
 
-  # Также разрешить ручной запуск.
+  # Позволяет запускать сборку вручную, когда workflow доступен в default branch.
   workflow_dispatch:
 
 permissions:
@@ -33,7 +32,7 @@ jobs:
         run: yarn install --frozen-lockfile
 
       - name: Run static checks
-        run: yarn check
+        run: yarn run check
 
       - name: Build Windows installer
         run: yarn build:win

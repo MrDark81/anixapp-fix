@@ -31,15 +31,19 @@ jobs:
         id: install-dependencies
         run: yarn install --frozen-lockfile
 
-      # Keep diagnostics visible, but don't prevent a test installer from being
-      # produced when the current baseline check configuration is incompatible.
-      # A final step below still marks the overall run as failed.
-      - name: Run static checks
-        id: static-checks
+      # Svelte-check currently rejects this repository's TypeScript 7 setup.
+      # Keep that diagnostic visible while allowing a test installer to be built.
+      - name: Run Svelte and TypeScript checks
+        id: svelte_check
         continue-on-error: true
-        run: yarn run check
+        run: yarn run svelte-check --tsconfig ./tsconfig.json
 
-      - name: Build Windows installer
+      - name: Run ESLint, Stylelint and encoding check
+        id: lint
+        continue-on-error: true
+        run: yarn run lint
+
+      - name: Build Windows test installer
         id: build-windows
         if: steps.install-dependencies.outcome == 'success'
         run: yarn build:win
@@ -49,6 +53,9 @@ jobs:
           FIREBASE_API_KEY: ${{ secrets.FIREBASE_API_KEY }}
           ANIXART_PROXY_APP_KEY: ${{ secrets.ANIXART_PROXY_APP_KEY }}
           ANIXBACK_PROXY_TARGET: ${{ secrets.ANIXBACK_PROXY_TARGET }}
+          # Test builds may omit OAuth/proxy secrets; those features won't work
+          # unless the real repository secrets are configured.
+          ANIXAPP_TEST_BUILD: '1'
 
       - name: Upload Windows build
         if: steps.build-windows.outcome == 'success'
@@ -63,7 +70,7 @@ jobs:
           retention-days: 7
 
       - name: Mark run failed if static checks failed
-        if: always() && steps.static-checks.outcome == 'failure'
+        if: always() && (steps.svelte_check.outcome == 'failure' || steps.lint.outcome == 'failure')
         shell: pwsh
         run: |
-          Write-Error "Static checks failed. See the 'Run static checks' step for diagnostics. The test build was still attempted."
+          Write-Error "One or more static checks failed. Review the check steps. The test build was still attempted."

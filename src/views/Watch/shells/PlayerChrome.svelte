@@ -120,7 +120,12 @@
     tapClicks.handle(e);
     // Не оставляем фокус на зоне клика — иначе Space срабатывает дважды.
     const ae = document.activeElement;
-    if (ae instanceof HTMLElement && (ae === e.currentTarget || e.currentTarget.contains(ae))) {
+    const currentTarget = e.currentTarget;
+    if (
+      ae instanceof HTMLElement
+      && currentTarget instanceof HTMLElement
+      && (ae === currentTarget || currentTarget.contains(ae))
+    ) {
       ae.blur();
     }
   }

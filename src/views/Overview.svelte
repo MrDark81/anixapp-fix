@@ -131,6 +131,7 @@
       withTimeout(api.collectionsWeek(-1, -1), 'collectionsWeek'),
       withTimeout(api.commentsWeek(), 'commentsWeek'),
     ]);
+    const commentsResult = results[5].status === 'fulfilled' ? results[5].value : null;
 
     return {
       banners: results[0].status === 'fulfilled'
@@ -146,10 +147,10 @@
       collectionsWeek: results[4].status === 'fulfilled'
         ? (results[4].value.content ?? []).map((raw) => mapOverviewCollection(raw as Record<string, unknown>))
         : [],
-      commentsWeek: results[5].status === 'fulfilled'
-        ? (results[5].value.content ?? [])
+      commentsWeek: commentsResult
+        ? (commentsResult.content ?? [])
             .map((raw) =>
-              mapOverviewCommentWeek(raw as Record<string, unknown>, results[5].value),
+              mapOverviewCommentWeek(raw as Record<string, unknown>, commentsResult),
             )
             .filter((c): c is OverviewCommentWeekItem => c != null)
         : [],

@@ -137,11 +137,11 @@ export async function fetchTvContinueWatchingItems(
 }
 
 async function waitForAnixApi(timeoutMs = 8_000): Promise<void> {
-  if (window.anixApi?.release?.filter && window.anixApi?.history?.all) return;
+  if (window.anixApi) return;
   const started = Date.now();
   while (Date.now() - started < timeoutMs) {
     await new Promise((resolve) => setTimeout(resolve, 16));
-    if (window.anixApi?.release?.filter && window.anixApi?.history?.all) return;
+    if (window.anixApi) return;
   }
   throw new Error('Anix API not ready');
 }
@@ -170,10 +170,8 @@ export async function loadTvHomeRowData(
       const items = row.kind === 'history'
         ? await fetchTvContinueWatchingItems()
         : await fetchTvHomeRowItems(row.filterArgs ?? {});
-      const result = {
-        items,
-        status: (items.length > 0 ? 'ready' : 'empty') as TvHomeRowState['status'],
-      };
+      const status: 'ready' | 'empty' = items.length > 0 ? 'ready' : 'empty';
+      const result = { items, status };
       rowCache.set(cacheKey, { ...result, at: Date.now() });
       return result;
     } catch (err) {

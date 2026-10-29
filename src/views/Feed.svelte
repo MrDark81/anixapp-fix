@@ -575,7 +575,7 @@
           },
         };
       })
-      .filter((a): a is FeedArticle => a != null);
+      .filter((a) => a != null) as FeedArticle[];
   }
 
   function normalizeChannels(raw: unknown): FeedChannel[] {
@@ -593,7 +593,7 @@
           ),
         };
       })
-      .filter((c): c is FeedChannel => c != null);
+      .filter((c) => c != null) as FeedChannel[];
   }
 
   function subscriptionIsFresh(ch: FeedChannel): boolean {

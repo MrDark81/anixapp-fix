@@ -1,6 +1,7 @@
 <script lang="ts">
   import { onMount, tick, untrack } from 'svelte';
   import { getWatchParams } from '../../router';
+  import type { LobbyPlaybackPayload } from '../../types/electron';
   import { getCurrentRoomId, sendLobbyChat, isLobbyAwaitingPlayerSync, notifyFluoPlayerSynced, canLobbyLocalCommand } from '../../services/lobby-state';
   import { logLobbyAction, snapshotPlayback } from '../../services/lobby-action-log';
   import { getFluoPlayer, installWindowFluo, sendFluoPreviewFrame } from '../../fluo';
@@ -1657,8 +1658,11 @@
     if (!api.getDubbers) return null;
     try {
       const dubRes = await api.getDubbers(rId);
+      const dubberTypes: DubberItem[] = Array.isArray(dubRes?.types)
+        ? dubRes.types as DubberItem[]
+        : [];
       const list = sortDubbersPinnedFirst(
-        (dubRes?.types ?? []).filter((d: DubberItem) => !isDubberBlacklisted(d.name) && d.id !== currentDubberId),
+        dubberTypes.filter((d) => !isDubberBlacklisted(d.name) && d.id !== currentDubberId),
       );
       for (const dub of list) {
         try {
@@ -2265,8 +2269,11 @@
       popoverLoading = true;
       const res = await (window as any).anixApi.release.getDubbers(rId);
       // Все озвучки релиза (без фильтра по текущему источнику / серии)
+      const dubberTypes: DubberItem[] = Array.isArray(res?.types)
+        ? res.types as DubberItem[]
+        : [];
       const all = sortDubbersPinnedFirst(
-        (res?.types ?? []).filter((d: DubberItem) => !isDubberBlacklisted(d.name)),
+        dubberTypes.filter((d) => !isDubberBlacklisted(d.name)),
       );
       dubbers = all;
       dubbersPickerCacheKey = cacheKey;
@@ -3638,12 +3645,13 @@
     try {
       const cached = await window.electron?.readDownloadSkipMarks?.(filePath);
       if (gen !== localSkipFetchGen || localPlaybackPath !== filePath) return;
-      if (cached) setSkipMarks(cached, { carry: true });
+      const cachedMarks = normalizeSkipMarks(cached);
+      if (cachedMarks) setSkipMarks(cachedMarks, { carry: true });
 
       const embed = await resolveEpisodeEmbedForSkip(rId, ep);
       if (gen !== localSkipFetchGen || localPlaybackPath !== filePath) return;
       if (!embed?.url) {
-        if (!cached) setSkipMarks(null);
+        if (!cachedMarks) setSkipMarks(null);
         return;
       }
       const res = await (window as any).anixApi?.release?.getDirectVideoLink?.(embed.url);
@@ -3652,7 +3660,7 @@
       if (skip) {
         setSkipMarks(skip, { carry: true });
         void window.electron?.saveDownloadSkipMarks?.({ filePath, skip });
-      } else if (!cached) {
+      } else if (!cachedMarks) {
         setSkipMarks(null);
       }
     } catch {
@@ -3916,7 +3924,7 @@
         setSkipMarks(skip, { carry: true });
         player.loadState = 'ready';
         await tick();
-        applyVideoAndUI(resolved.url, uv, ep, watchState.title, watchState.sourceName, watchState.dubberId, initialSeek, initialJoinPaused, resolveError);
+        applyVideoAndUI(resolved.url, uv, ep, watchState.title, watchState.sourceName, watchState.dubberId, initialSeek, initialJoinPaused ?? false, resolveError);
         if (initialSeek != null) rememberLobbyJoinSeek(initialSeek);
         refreshDubberNameFromApi();
         refreshSourceNameFromApi();
@@ -4186,7 +4194,7 @@
         lobbySyncAwaiting = true;
         isApplyingSync = true;
         const d = e.detail as {
-          playback?: Record<string, unknown> | null;
+          playback?: LobbyPlaybackPayload | null;
           reason?: 'join' | 'episode' | 'buffer';
           joinerPeerId?: string | null;
         } | null;

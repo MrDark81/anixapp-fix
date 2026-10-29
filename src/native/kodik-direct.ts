@@ -172,9 +172,10 @@ async function loadKodikPlayer(embedUrl: string) {
   if (!videoInfo?.hash || !videoInfo.id || !videoInfo.type) {
     return { links: null, skip };
   }
+  const resolvedVideoInfo = { type: videoInfo.type, id: videoInfo.id, hash: videoInfo.hash };
   let links = null as ReturnType<typeof decryptKodikLinks> | null;
   try {
-    links = await fetchKodikFtorLinks(pageUrl, videoInfo);
+    links = await fetchKodikFtorLinks(pageUrl, resolvedVideoInfo);
   } catch {
     links = null;
   }

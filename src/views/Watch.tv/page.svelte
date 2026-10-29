@@ -609,7 +609,7 @@
       let episode: Episode | undefined;
       const res = await api.getEpisode(rId, sId, nextEp);
       episode = res?.episode;
-      if (!episode?.url && api.getEpisodes && dubberId) {
+      if (!episode?.url && dubberId) {
         const list = episodes.length ? episodes : await loadEpisodesList();
         episode = list.find((row) => row.position === nextEp);
       }

@@ -307,6 +307,44 @@ document.getElementById('tog-right')?.addEventListener('click', () => {
 });
 
 // ── Mode groups UI ─────────────────────────────────────────────────────────────
+function createCancellableRenderVideo(video: HTMLVideoElement): { video: HTMLVideoElement; stop: () => void } {
+  let stopped = false;
+  const pendingCallbacks = new Set<number>();
+  const requestFrame = video.requestVideoFrameCallback.bind(video);
+  const cancelFrame = video.cancelVideoFrameCallback.bind(video);
+  const renderVideo = new Proxy(video, {
+    get(target, property) {
+      if (property === 'requestVideoFrameCallback') {
+        return (callback: VideoFrameRequestCallback): number => {
+          if (stopped) return 0;
+          let handle = 0;
+          handle = requestFrame((now, metadata) => {
+            pendingCallbacks.delete(handle);
+            if (!stopped) callback(now, metadata);
+          });
+          pendingCallbacks.add(handle);
+          return handle;
+        };
+      }
+      const value = Reflect.get(target, property, target);
+      return typeof value === 'function' ? value.bind(target) : value;
+    },
+    set(target, property, value) {
+      return Reflect.set(target, property, value, target);
+    },
+  });
+
+  return {
+    video: renderVideo,
+    stop() {
+      if (stopped) return;
+      stopped = true;
+      for (const handle of pendingCallbacks) cancelFrame(handle);
+      pendingCallbacks.clear();
+    },
+  };
+}
+
 function buildModeGroups() {
   modeGroups.innerHTML = '';
   MODE_GROUPS.forEach(group => {
@@ -359,9 +397,11 @@ function playOneFrame() {
   if (!wasPaused) return;
   const stop = () => { videoEl.pause(); };
   videoEl.play().then(() => {
-    if ('requestVideoFrameCallback' in videoEl) {
-      (videoEl as HTMLVideoElement & { requestVideoFrameCallback: (cb: () => void) => number })
-        .requestVideoFrameCallback(stop);
+    const frameVideo = videoEl as unknown as {
+      requestVideoFrameCallback?: (callback: () => void) => number;
+    };
+    if (typeof frameVideo.requestVideoFrameCallback === 'function') {
+      frameVideo.requestVideoFrameCallback(stop);
     } else {
       videoEl.addEventListener('timeupdate', stop, { once: true });
       setTimeout(stop, 120);
@@ -430,7 +470,7 @@ async function loadPreset(idx: number) {
     overlayTxt.textContent = `Переход к ${formatTime(preset.start)}…`;
     initHls(playUrl, preset.start);
   } catch (err) {
-    overlayTxt.textContent = String(err?.message || err || 'Ошибка');
+    overlayTxt.textContent = err instanceof Error ? err.message : String(err || 'Ошибка');
     statusEl.textContent = 'Ошибка';
   }
 }
@@ -626,9 +666,10 @@ async function applyUpscale() {
   canvasEl.hidden = false;
   const ModeClass = MODE_MAP[currentModeId] ?? ModeB;
 
+  const cancellableVideo = createCancellableRenderVideo(videoEl);
   try {
-    const stop = await anime4kRender({
-      video: videoEl,
+    await anime4kRender({
+      video: cancellableVideo.video,
       canvas: canvasEl,
       pipelineBuilder: (device: GPUDevice, inputTexture: GPUTexture) => {
         const native = { width: vw, height: vh };
@@ -636,10 +677,11 @@ async function applyUpscale() {
         return [new ModeClass({ device, inputTexture, nativeDimensions: native, targetDimensions: t }) as any];
       },
     });
-    upscaleStopFn = stop as () => void;
+    upscaleStopFn = cancellableVideo.stop;
     statusEl.textContent = '✓ ' + m.label;
     showSplit(m.label);
   } catch (err) {
+    cancellableVideo.stop();
     console.error('[Anime4K]', err);
     canvasEl.hidden = true;
     splitEl.hidden = true;

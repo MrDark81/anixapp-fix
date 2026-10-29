@@ -391,7 +391,7 @@ function isSourceWebAdUrl(url) {
   } catch {
     href = String(url || '').toLowerCase();
   }
-  if (/adfox|adsystem|adservice|googlesyndication|doubleclick|imasdk|vast[./]|\/ads?[/.?]/.test(href)) {
+  if (/adfox|adsystem|adservice|googlesyndication|doubleclick|imasdk|vast[\./]|\/ads?[\/.?]/.test(href)) {
     if (!/kodikplayer\.com|kodik\.info|aniqit\.com|kodik-cdn|kodik-storage|solodcdn|anixmirai|anixart/i.test(host)) {
       return true;
     }

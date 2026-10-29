@@ -28,7 +28,7 @@
     MONTAGE_TOTAL_SEC,
   } from '../../utils/heroMontage';
 
-  interface OverviewEditorPayload {
+  export interface OverviewEditorPayload {
     bannerId: number;
     releaseId: number | null;
     title: string;
@@ -1154,13 +1154,11 @@
   onMount(async () => {
     try {
       await initAnixbackEndpoint();
-      const p = (
-        await window.electron?.getOverviewEditorPayload?.()
-      ) as unknown as OverviewEditorPayload | undefined;
-      if (!p?.adminToken || !p.bannerId) throw new Error('Нет данных редактора');
-      payload = p;
+      const p = await window.electron?.getOverviewEditorPayload?.();
+      if (!p?.adminToken || !p?.bannerId) throw new Error('Нет данных редактора');
+      payload = p as OverviewEditorPayload;
       setAdminToken(p.adminToken);
-      segments = (p.segments ?? []).map((s) => ({ ...s }));
+      segments = (p.segments ?? []).map((s: VideoSegment) => ({ ...s }));
       crossfade = p.crossfade ?? 0.5;
 
       if (p.sourceVideoUrl) {

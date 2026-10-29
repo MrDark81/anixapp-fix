@@ -235,7 +235,7 @@
         <div class="dc-row__release-embed">
           {#if embed === "loading"}
             <UiV2AnimeCardSkeleton variant="vertical" />
-          {:else if embed}
+          {:else if embed && embed !== "error"}
             <ReleaseCardUiV2 data={embedToCardData(embed)} variant="vertical" />
           {/if}
         </div>

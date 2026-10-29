@@ -1,5 +1,3 @@
-import { requestOpenExternal } from './external-link';
-
 export type ProfileSocialPages = {
   vk_page?: string | null;
   tg_page?: string | null;
@@ -76,6 +74,7 @@ export async function openSocialLink(link: ProfileSocialLink): Promise<'copied' 
     }
   }
   if (link.href) {
+    const { requestOpenExternal } = require('./external-link') as typeof import('./external-link');
     requestOpenExternal(link.href);
     return 'opened';
   }

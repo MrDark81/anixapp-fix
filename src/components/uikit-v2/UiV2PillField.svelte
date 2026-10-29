@@ -1,6 +1,5 @@
 <script lang="ts">
   import type { Snippet } from 'svelte';
-  import type { HTMLInputAttributes } from 'svelte/elements';
 
   type Size = 'sm' | 'md' | 'lg';
 
@@ -13,7 +12,7 @@
     name?: string;
     id?: string;
     maxlength?: number;
-    autocomplete?: HTMLInputAttributes['autocomplete'];
+    autocomplete?: string;
     inputmode?: 'text' | 'email' | 'numeric' | 'tel' | 'url' | 'search' | 'none' | 'decimal';
     spellcheck?: boolean;
     disabled?: boolean;

@@ -136,22 +136,12 @@ export async function fetchTvContinueWatchingItems(
     .map((raw) => mapHistoryRawToReleaseCard(raw as Record<string, unknown>));
 }
 
-type AnixApiReadiness = {
-  release?: { filter?: unknown };
-  history?: { all?: unknown };
-};
-
-function hasAnixApiForTvHome(): boolean {
-  const api = window.anixApi as unknown as AnixApiReadiness | null | undefined;
-  return Boolean(api?.release?.filter && api?.history?.all);
-}
-
 async function waitForAnixApi(timeoutMs = 8_000): Promise<void> {
-  if (hasAnixApiForTvHome()) return;
+  if (window.anixApi?.release?.filter && window.anixApi?.history?.all) return;
   const started = Date.now();
   while (Date.now() - started < timeoutMs) {
     await new Promise((resolve) => setTimeout(resolve, 16));
-    if (hasAnixApiForTvHome()) return;
+    if (window.anixApi?.release?.filter && window.anixApi?.history?.all) return;
   }
   throw new Error('Anix API not ready');
 }
@@ -180,8 +170,10 @@ export async function loadTvHomeRowData(
       const items = row.kind === 'history'
         ? await fetchTvContinueWatchingItems()
         : await fetchTvHomeRowItems(row.filterArgs ?? {});
-      const status: 'ready' | 'empty' = items.length > 0 ? 'ready' : 'empty';
-      const result = { items, status };
+      const result = {
+        items,
+        status: (items.length > 0 ? 'ready' : 'empty') as TvHomeRowState['status'],
+      };
       rowCache.set(cacheKey, { ...result, at: Date.now() });
       return result;
     } catch (err) {

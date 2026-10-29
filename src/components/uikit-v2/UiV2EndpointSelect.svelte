@@ -495,7 +495,7 @@
     try {
       const current = (await window.anixApi!.client.getBaseUrl()) as string;
       value = normalizeSelectableApiEndpoint(current || DEFAULT_API_ENDPOINT);
-      if (current && current !== value && persist && window.anixApi) {
+      if (current && current !== value && persist) {
         await window.anixApi.client.setBaseUrl(value);
       }
     } catch {
@@ -581,7 +581,7 @@
             ? endpointStatusDesc(opt.value, { ok: false, latencyMs: null }, geo)
             : endpointStatusDesc(opt.value, undefined, geo),
           icon: endpointFlagIconHtml(geo.countryCode),
-          status: blocked ? ('offline' as const) : ('neutral' as const),
+          status: (blocked ? 'offline' : 'neutral') as const,
           disabled: blocked,
         };
       })}

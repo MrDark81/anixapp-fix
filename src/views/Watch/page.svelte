@@ -15,18 +15,6 @@
   import { episodeHistoryLabel } from '../../utils/episode-display';
   import { rememberVideoCdnFromUrl, syncExtraVideoHostsToMain } from '../../utils/extra-video-hosts';
   import { sortDubbersPinnedFirst, readLastEpisodeTypeUpdateId } from '../../utils/dubber-meta';
-
-  type LobbyBarrierPlaybackPayload = Record<string, unknown> & {
-    releaseId?: string | number;
-    sourceId?: string | number;
-    ep?: string | number;
-    dubberId?: string | number | null;
-    dubberName?: string | null;
-    title?: string | null;
-    sourceName?: string | null;
-    currentTime?: number;
-    paused?: boolean;
-  };
   import {
     getCachedDubbers,
     setCachedDubbers,
@@ -1044,7 +1032,7 @@
     if (!video || !canvas) return;
     // Пока нет стабильных кадров — не трогаем UI (иначе чёрный canvas мигает поверх видео).
     if (video.videoWidth < 2 || video.videoHeight < 2) return;
-    if (video.readyState < HTMLMediaElement.HAVE_FUTURE_DATA) return;
+    if (video.readyState < HTMLVideoElement.HAVE_FUTURE_DATA) return;
 
     // Уже активен с тем же mode/target/aspect/буфером — не рестартим (пауза/play).
     const wantH = anime4kTargetHeight(player.upscaleTargetRes);
@@ -1110,7 +1098,7 @@
       if (!player.upscaleEnabled || !isGpuAvailable() || !player.useVideo) return;
       const v = videoEl;
       // HAVE_FUTURE_DATA + чуть буфера — меньше стартовых потерь кадров.
-      if (!v || v.videoWidth < 2 || v.readyState < HTMLMediaElement.HAVE_FUTURE_DATA) {
+      if (!v || v.videoWidth < 2 || v.readyState < HTMLVideoElement.HAVE_FUTURE_DATA) {
         if (upscaleRestartTries++ < 50) {
           upscaleRestartTimer = window.setTimeout(attempt, 100);
         }
@@ -1669,11 +1657,8 @@
     if (!api.getDubbers) return null;
     try {
       const dubRes = await api.getDubbers(rId);
-      const dubberTypes: DubberItem[] = Array.isArray(dubRes?.types)
-        ? dubRes.types as DubberItem[]
-        : [];
       const list = sortDubbersPinnedFirst(
-        dubberTypes.filter((d) => !isDubberBlacklisted(d.name) && d.id !== currentDubberId),
+        (dubRes?.types ?? []).filter((d: DubberItem) => !isDubberBlacklisted(d.name) && d.id !== currentDubberId),
       );
       for (const dub of list) {
         try {
@@ -1962,7 +1947,7 @@
         return;
       }
       setOrigEpisodeUrl(episode.url);
-      const { playUrl: pUrl, useVideo: uv, qualityMap, currentQuality: cq, skip, error: resolveError } = await core.resolve(episode.url, episode.iframe ?? false);
+      const { playUrl: pUrl, useVideo: uv, qualityMap, currentQuality: cq, skip, error: resolveError } = await core.resolve(episode.url, episode.iframe);
       if (myGen !== episodeLoadGen) return;
       setSkipMarks(skip, { carry: true });
       const resolved = applyQualityMap(qualityMap, cq, pUrl, { resetManualLock: true });
@@ -2280,11 +2265,8 @@
       popoverLoading = true;
       const res = await (window as any).anixApi.release.getDubbers(rId);
       // Все озвучки релиза (без фильтра по текущему источнику / серии)
-      const dubberTypes: DubberItem[] = Array.isArray(res?.types)
-        ? res.types as DubberItem[]
-        : [];
       const all = sortDubbersPinnedFirst(
-        dubberTypes.filter((d) => !isDubberBlacklisted(d.name)),
+        (res?.types ?? []).filter((d: DubberItem) => !isDubberBlacklisted(d.name)),
       );
       dubbers = all;
       dubbersPickerCacheKey = cacheKey;
@@ -3656,13 +3638,12 @@
     try {
       const cached = await window.electron?.readDownloadSkipMarks?.(filePath);
       if (gen !== localSkipFetchGen || localPlaybackPath !== filePath) return;
-      const cachedMarks = normalizeSkipMarks(cached);
-      if (cachedMarks) setSkipMarks(cachedMarks, { carry: true });
+      if (cached) setSkipMarks(cached, { carry: true });
 
       const embed = await resolveEpisodeEmbedForSkip(rId, ep);
       if (gen !== localSkipFetchGen || localPlaybackPath !== filePath) return;
       if (!embed?.url) {
-        if (!cachedMarks) setSkipMarks(null);
+        if (!cached) setSkipMarks(null);
         return;
       }
       const res = await (window as any).anixApi?.release?.getDirectVideoLink?.(embed.url);
@@ -3671,7 +3652,7 @@
       if (skip) {
         setSkipMarks(skip, { carry: true });
         void window.electron?.saveDownloadSkipMarks?.({ filePath, skip });
-      } else if (!cachedMarks) {
+      } else if (!cached) {
         setSkipMarks(null);
       }
     } catch {
@@ -3930,12 +3911,12 @@
         }
 
         setOrigEpisodeUrl(episode.url);
-        const { playUrl: pUrl, useVideo: uv, qualityMap, currentQuality: cq, skip, error: resolveError } = await core.resolve(episode.url, episode.iframe ?? false);
+        const { playUrl: pUrl, useVideo: uv, qualityMap, currentQuality: cq, skip, error: resolveError } = await core.resolve(episode.url, episode.iframe);
         const resolved = applyQualityMap(qualityMap, cq, pUrl, { resetManualLock: true });
         setSkipMarks(skip, { carry: true });
         player.loadState = 'ready';
         await tick();
-        applyVideoAndUI(resolved.url, uv, ep, watchState.title, watchState.sourceName, watchState.dubberId, initialSeek, initialJoinPaused ?? false, resolveError);
+        applyVideoAndUI(resolved.url, uv, ep, watchState.title, watchState.sourceName, watchState.dubberId, initialSeek, initialJoinPaused, resolveError);
         if (initialSeek != null) rememberLobbyJoinSeek(initialSeek);
         refreshDubberNameFromApi();
         refreshSourceNameFromApi();
@@ -4205,7 +4186,7 @@
         lobbySyncAwaiting = true;
         isApplyingSync = true;
         const d = e.detail as {
-          playback?: LobbyBarrierPlaybackPayload | null;
+          playback?: Record<string, unknown> | null;
           reason?: 'join' | 'episode' | 'buffer';
           joinerPeerId?: string | null;
         } | null;

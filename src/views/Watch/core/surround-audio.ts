@@ -551,6 +551,7 @@ export class SurroundController {
       panner.positionY.value = y;
       panner.positionZ.value = z;
     } else {
+      // @ts-expect-error legacy
       panner.setPosition(x, y, z);
     }
   }

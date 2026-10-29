@@ -151,15 +151,8 @@
   );
   const selectedIconId = $derived(selected?.type === 'image' ? selected.iconId ?? '' : '');
 
-  const box: {
-    view: AdDesignStates;
-    variant: Variant;
-    livePreview: boolean;
-    zoom: number;
-    pointerHover: boolean;
-    fxAnimated: boolean;
-  } = {
-    view,
+  const box = {
+    view: { version: 2 as const, width: 1, height: 1, rootId: '', nodes: {} },
     variant: 'rest' as Variant,
     livePreview: false,
     zoom: 1,
@@ -940,9 +933,9 @@
     return null;
   }
 
-  function liveCrtEffect(): (AdEffect & { type: 'crt' }) | null {
+  function liveCrtEffect(): Extract<AdEffect, { type: 'crt' }> | null {
     const fx = selected?.effects?.find((e) => e.type === 'crt');
-    return fx && fx.type === 'crt' ? (fx as AdEffect & { type: 'crt' }) : null;
+    return fx && fx.type === 'crt' ? fx : null;
   }
 
   function liveCrtParams() {

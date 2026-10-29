@@ -116,8 +116,8 @@
       selfProfileId = data?.profile?.id ?? null;
     });
     void window.anixApi?.release?.info(releaseId, false).then(
-      (data) => {
-        const r = data?.release as { title_ru?: string; title_original?: string } | undefined;
+      (data: { release?: { title_ru?: string; title_original?: string } }) => {
+        const r = data.release;
         releaseTitle = r?.title_ru || r?.title_original || '';
       },
     );

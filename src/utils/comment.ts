@@ -164,10 +164,7 @@ export function normalizeCommentsFromResponse(data: Record<string, unknown>): Co
     .map((raw) => normalizeComment(raw, resolved));
 }
 
-export function isCommentContentHidden(
-  comment: Pick<CommentData, 'isDeleted' | 'isSpoiler' | 'voteCount'>,
-  revealed: boolean,
-): boolean {
+export function isCommentContentHidden(comment: CommentData, revealed: boolean): boolean {
   if (revealed || comment.isDeleted) return false;
   if (comment.isSpoiler) return true;
   if (comment.voteCount <= -5) return true;

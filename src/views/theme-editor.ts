@@ -263,7 +263,7 @@ export function renderThemeEditor(): HTMLElement {
     picker.className = 'te-color-input';
 
     picker.addEventListener('input', () => {
-      (draft.vars as unknown as Record<string, string>)[key] = picker.value;
+      (draft.vars as Record<string, string>)[key] = picker.value;
       swatch.style.background = picker.value;
       applyTheme(draft);       // apply in editor window
       sendLiveUpdate();        // push to main window

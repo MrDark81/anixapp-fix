@@ -22,7 +22,7 @@
       const data = await window.anixApi.discover.recommendations(0) as any;
       const content = (data?.content ?? []) as Record<string, unknown>[];
       if (content.length > 0) {
-        items = content.map((raw) => mapReleaseRawToCard(raw));
+        items = content.map(mapReleaseRawToCard);
         loadState = 'ready';
         return;
       }

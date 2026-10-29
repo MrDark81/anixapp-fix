@@ -5,7 +5,7 @@
   import { cubicOut } from 'svelte/easing';
   import { listFluoRooms, type FluoRoomListItem } from '../../fluo/rooms-api';
   import { subscribeFluoCatalog } from '../../fluo/catalog-ws';
-  import type { FluoControlMode, FluoCreateRoomOptions, FluoRoomVisibility } from '../../fluo/types';
+  import type { FluoControlMode, FluoCreateRoomOptions } from '../../fluo/types';
   import { fluoPlaybackControlMode, fluoAnimeSelectModeOf } from '../../fluo/types';
   import {
     createLobbyRoomAndOpenPlayer,

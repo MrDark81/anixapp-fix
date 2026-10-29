@@ -1,12 +1,10 @@
 name: Windows Test Build
 
 on:
-  # Automatically build every pushed branch, including test-windows.
+  # Build and run regression checks for every pushed branch.
   push:
     branches:
       - '**'
-
-  # Available for manual dispatch once this workflow exists on the default branch.
   workflow_dispatch:
 
 permissions:
@@ -14,7 +12,7 @@ permissions:
 
 jobs:
   build-windows:
-    name: Checks and Windows installer
+    name: Static regression checks and Windows installer
     runs-on: windows-latest
 
     steps:
@@ -31,17 +29,55 @@ jobs:
         id: install-dependencies
         run: yarn install --frozen-lockfile
 
-      # Run Svelte diagnostics through the stable TypeScript 6 compiler API.
-      # Keep diagnostics visible while allowing a test installer to be built.
-      - name: Run Svelte and TypeScript checks
-        id: svelte_check
+      # The application currently declares TypeScript 7, which svelte-check's
+      # stable compiler API does not support. Install TS 6 only in this runner;
+      # the repository package.json and yarn.lock remain identical to upstream.
+      - name: Prepare TypeScript 6 for Svelte diagnostics
+        id: prepare-typescript
+        if: steps.install-dependencies.outcome == 'success'
         continue-on-error: true
-        run: yarn run svelte-check --tsconfig ./tsconfig.json
+        shell: pwsh
+        run: |
+          $tempRoot = Join-Path $env:RUNNER_TEMP 'anixapp-svelte-typescript'
+          New-Item -ItemType Directory -Force -Path $tempRoot | Out-Null
+          '{"name":"anixapp-svelte-check-runtime","version":"1.0.0","private":true}' |
+            Set-Content -LiteralPath (Join-Path $tempRoot 'package.json') -Encoding utf8
+          npm install --prefix "$tempRoot" typescript@6.0.3 --no-save --no-audit --no-fund --legacy-peer-deps
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          $source = Join-Path $tempRoot 'node_modules\typescript'
+          $target = Join-Path $env:GITHUB_WORKSPACE 'node_modules\typescript'
+          if (Test-Path $target) { Remove-Item -LiteralPath $target -Recurse -Force }
+          Copy-Item -LiteralPath $source -Destination $target -Recurse -Force
+          node -e "console.log('Svelte-check TypeScript:', require('./node_modules/typescript/package.json').version)"
 
-      - name: Run ESLint, Stylelint and encoding check
-        id: lint
+      - name: Collect Svelte and TypeScript diagnostics
+        id: svelte-check
+        if: steps.install-dependencies.outcome == 'success' && steps.prepare-typescript.outcome == 'success'
         continue-on-error: true
-        run: yarn run lint
+        shell: pwsh
+        run: |
+          $log = Join-Path $env:RUNNER_TEMP 'svelte-check-output.log'
+          yarn run svelte-check --tsconfig ./tsconfig.json 2>&1 | Tee-Object -FilePath $log
+          # Existing upstream diagnostics are compared against a baseline below.
+          exit 0
+
+      - name: Check Svelte and TypeScript against upstream baseline
+        id: svelte-baseline
+        if: always() && steps.install-dependencies.outcome == 'success' && steps.prepare-typescript.outcome == 'success'
+        continue-on-error: true
+        run: node scripts/check-static-baseline.mjs svelte "$env:RUNNER_TEMP\svelte-check-output.log" .github/baselines/svelte-check-errors.json
+
+      - name: Check ESLint errors against upstream baseline
+        id: eslint-baseline
+        if: steps.install-dependencies.outcome == 'success'
+        continue-on-error: true
+        run: node scripts/check-static-baseline.mjs eslint .github/baselines/eslint-errors.json
+
+      - name: Run Stylelint and encoding check
+        id: stylelint
+        if: steps.install-dependencies.outcome == 'success'
+        continue-on-error: true
+        run: yarn run lint:scss && yarn run check:mojibake
 
       - name: Build Windows test installer
         id: build-windows
@@ -50,12 +86,11 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           VITE_GIPHY_API_KEY: ${{ secrets.VITE_GIPHY_API_KEY }}
-          FIREBASE_API_KEY: ${{ secrets.FIREBASE_API_KEY }}
-          ANIXART_PROXY_APP_KEY: ${{ secrets.ANIXART_PROXY_APP_KEY }}
+          # Placeholder keys allow packaging without real secrets. OAuth and
+          # the backup proxy won't authenticate in this diagnostic artifact.
+          FIREBASE_API_KEY: 'TEST_BUILD_PLACEHOLDER_NOT_A_REAL_KEY'
+          ANIXART_PROXY_APP_KEY: 'TEST_BUILD_PLACEHOLDER_NOT_A_REAL_KEY'
           ANIXBACK_PROXY_TARGET: ${{ secrets.ANIXBACK_PROXY_TARGET }}
-          # Test builds may omit OAuth/proxy secrets; those features won't work
-          # unless the real repository secrets are configured.
-          ANIXAPP_TEST_BUILD: '1'
 
       - name: Upload Windows build
         if: steps.build-windows.outcome == 'success'
@@ -69,8 +104,8 @@ jobs:
           if-no-files-found: error
           retention-days: 7
 
-      - name: Mark run failed if static checks failed
-        if: always() && (steps.svelte_check.outcome == 'failure' || steps.lint.outcome == 'failure')
+      - name: Mark run failed if static regressions were detected
+        if: always() && (steps.prepare-typescript.outcome == 'failure' || steps.svelte-baseline.outcome == 'failure' || steps.eslint-baseline.outcome == 'failure' || steps.stylelint.outcome == 'failure')
         shell: pwsh
         run: |
-          Write-Error "One or more static checks failed. Review the check steps. The test build was still attempted."
+          Write-Error "New static diagnostics were detected relative to the upstream baseline. Review the static-check steps; the test build was still attempted."

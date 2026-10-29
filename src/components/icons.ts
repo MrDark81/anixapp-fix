@@ -116,7 +116,7 @@ import {
 
 type IconNode = [string, Record<string, string | number | undefined>][];
 
-function toSvg(icon: IconNode, size: number, extraAttrs: Record<string, string> = {}): string {
+function toSvg(icon: IconNode[], size: number, extraAttrs: Record<string, string> = {}): string {
   const base: Record<string, string> = {
     xmlns: 'http://www.w3.org/2000/svg',
     width: String(size),

@@ -259,7 +259,7 @@
         if (nextPage === 0) loadState = 'empty';
         return;
       }
-      items = [...items, ...content.map((raw) => mapReleaseRawToCard(raw))];
+      items = [...items, ...content.map(mapReleaseRawToCard)];
       page = nextPage + 1;
       loadState = 'ready';
       requestAnimationFrame(checkIfNeedsMore);

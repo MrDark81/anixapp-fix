@@ -165,7 +165,7 @@ export class UpscaleController {
       return false;
     }
     // Ждём кадры: иначе WebGPU стартует вхолостую и плеер мигает.
-    if (video.readyState < HTMLMediaElement.HAVE_FUTURE_DATA) {
+    if (video.readyState < HTMLVideoElement.HAVE_FUTURE_DATA) {
       return false;
     }
     if (video.videoWidth < 2 || video.videoHeight < 2) {

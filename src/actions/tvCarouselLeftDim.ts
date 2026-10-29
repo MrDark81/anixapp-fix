@@ -12,7 +12,6 @@ export function tvCarouselLeftDim(carouselRoot: HTMLElement): { destroy(): void 
   if (!scroll) {
     return { destroy() {} };
   }
-  const activeScroll = scroll;
 
   let frame = 0;
 
@@ -21,7 +20,7 @@ export function tvCarouselLeftDim(carouselRoot: HTMLElement): { destroy(): void 
     const rail = document.querySelector(RAIL_SEL);
     const railRight = rail?.getBoundingClientRect().right ?? 0;
 
-    activeScroll.querySelectorAll(ITEM_SEL).forEach((node) => {
+    scroll.querySelectorAll(ITEM_SEL).forEach((node) => {
       if (!(node instanceof HTMLElement)) return;
       const rect = node.getBoundingClientRect();
       const underRail = rect.right <= railRight + 2;
@@ -34,12 +33,12 @@ export function tvCarouselLeftDim(carouselRoot: HTMLElement): { destroy(): void 
     frame = requestAnimationFrame(update);
   }
 
-  activeScroll.addEventListener('scroll', schedule, { passive: true });
+  scroll.addEventListener('scroll', schedule, { passive: true });
   window.addEventListener('resize', schedule, { passive: true });
 
   const ro = new ResizeObserver(schedule);
   ro.observe(scroll);
-  if (activeScroll.parentElement) ro.observe(activeScroll.parentElement);
+  if (scroll.parentElement) ro.observe(scroll.parentElement);
 
   const rail = document.querySelector(RAIL_SEL);
   if (rail) ro.observe(rail);
@@ -55,11 +54,11 @@ export function tvCarouselLeftDim(carouselRoot: HTMLElement): { destroy(): void 
   return {
     destroy() {
       if (frame) cancelAnimationFrame(frame);
-      activeScroll.removeEventListener('scroll', schedule);
+      scroll.removeEventListener('scroll', schedule);
       window.removeEventListener('resize', schedule);
       ro.disconnect();
       mo.disconnect();
-      activeScroll.querySelectorAll(ITEM_SEL).forEach((node) => {
+      scroll.querySelectorAll(ITEM_SEL).forEach((node) => {
         node.removeAttribute('data-tv-under-rail');
       });
     },

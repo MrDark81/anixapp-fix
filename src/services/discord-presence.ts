@@ -43,7 +43,7 @@ async function loadSettings(): Promise<DiscordRpcSettings> {
   if (!window.electron?.getSettings) return normalizeDiscordRpcSettings(null);
   try {
     const raw = await window.electron.getSettings();
-    settingsCache = normalizeDiscordRpcSettings(raw as unknown as Record<string, unknown>);
+    settingsCache = normalizeDiscordRpcSettings(raw as Record<string, unknown>);
     return settingsCache;
   } catch {
     return normalizeDiscordRpcSettings(null);

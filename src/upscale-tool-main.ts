@@ -56,7 +56,7 @@ const MODES: { id: number; label: string; desc: string; group: string }[] = [
   { id: 13, label: 'GANx4UUL', desc: 'Upscale ×4', group: 'Upscale' },
 ];
 
-const MODE_MAP: Record<number, new (opts: any) => unknown> = {
+const MODE_MAP: Record<number, new (opts: object) => unknown> = {
   0: DoG, 1: BilateralMean, 2: CNNM, 3: CNNSoftM, 4: CNNSoftVL,
   5: CNNVL, 6: CNNUL, 7: GANUUL,
   8: CNNx2M, 9: CNNx2VL, 10: DenoiseCNNx2VL, 11: CNNx2UL,
@@ -359,11 +359,9 @@ function playOneFrame() {
   if (!wasPaused) return;
   const stop = () => { videoEl.pause(); };
   videoEl.play().then(() => {
-    const frameVideo = videoEl as unknown as {
-      requestVideoFrameCallback?: (callback: () => void) => number;
-    };
-    if (typeof frameVideo.requestVideoFrameCallback === 'function') {
-      frameVideo.requestVideoFrameCallback(stop);
+    if ('requestVideoFrameCallback' in videoEl) {
+      (videoEl as HTMLVideoElement & { requestVideoFrameCallback: (cb: () => void) => number })
+        .requestVideoFrameCallback(stop);
     } else {
       videoEl.addEventListener('timeupdate', stop, { once: true });
       setTimeout(stop, 120);
@@ -432,7 +430,7 @@ async function loadPreset(idx: number) {
     overlayTxt.textContent = `Переход к ${formatTime(preset.start)}…`;
     initHls(playUrl, preset.start);
   } catch (err) {
-    overlayTxt.textContent = err instanceof Error ? err.message : String(err || 'Ошибка');
+    overlayTxt.textContent = String(err?.message || err || 'Ошибка');
     statusEl.textContent = 'Ошибка';
   }
 }
@@ -629,7 +627,7 @@ async function applyUpscale() {
   const ModeClass = MODE_MAP[currentModeId] ?? ModeB;
 
   try {
-    await anime4kRender({
+    const stop = await anime4kRender({
       video: videoEl,
       canvas: canvasEl,
       pipelineBuilder: (device: GPUDevice, inputTexture: GPUTexture) => {
@@ -638,8 +636,7 @@ async function applyUpscale() {
         return [new ModeClass({ device, inputTexture, nativeDimensions: native, targetDimensions: t }) as any];
       },
     });
-    // anime4kRender returns Promise<void>; keep the original preview lifecycle.
-    upscaleStopFn = null;
+    upscaleStopFn = stop as () => void;
     statusEl.textContent = '✓ ' + m.label;
     showSplit(m.label);
   } catch (err) {

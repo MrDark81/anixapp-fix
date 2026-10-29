@@ -575,7 +575,7 @@
           },
         };
       })
-      .filter((a) => a != null) as FeedArticle[];
+      .filter((a): a is FeedArticle => a != null);
   }
 
   function normalizeChannels(raw: unknown): FeedChannel[] {
@@ -593,7 +593,7 @@
           ),
         };
       })
-      .filter((c) => c != null) as FeedChannel[];
+      .filter((c): c is FeedChannel => c != null);
   }
 
   function subscriptionIsFresh(ch: FeedChannel): boolean {
@@ -3015,6 +3015,10 @@
           <p class="feed-page__hint">
             {#if tab === 'my'}
               Подпишитесь на каналы в Anixart — тогда их записи появятся здесь.
+            {:else if tab === 'history'}
+              Открывайте каналы и записи — они появятся здесь.
+            {:else if tab === 'drafts'}
+              Если закрыть редактор с незаконченным текстом, запись появится здесь.
             {:else}
               В свежей ленте пока пусто. Загляните позже.
             {/if}

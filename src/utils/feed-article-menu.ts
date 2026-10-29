@@ -32,7 +32,7 @@ export type FeedArticleMenuOptions = {
 
 function channelFlag(channel: FeedArticle['channel'], key: string): boolean {
   if (!channel || typeof channel !== 'object') return false;
-  const rec = channel as unknown as Record<string, unknown>;
+  const rec = channel as Record<string, unknown>;
   return !!rec[key];
 }
 
@@ -197,12 +197,11 @@ export async function ensureFeedArticleMenuSession(force = false): Promise<void>
             const rec = row as FeedArticleReportReason;
             const id = Number(rec.id);
             if (!Number.isFinite(id) || id <= 0) return null;
-            const title = rec.title ?? rec.name ?? rec.text;
             return {
               id,
-              ...(title === undefined ? {} : { title }),
-              ...(rec.name === undefined ? {} : { name: rec.name }),
-              ...(rec.text === undefined ? {} : { text: rec.text }),
+              title: rec.title ?? rec.name ?? rec.text,
+              name: rec.name,
+              text: rec.text,
             } satisfies FeedArticleReportReason;
           })
           .filter((x): x is FeedArticleReportReason => x != null);

@@ -64,13 +64,13 @@ export function attachTvHomeCarouselScroll(root: ParentNode = document): () => v
     scrollTvCarouselItemIntoView(card);
   };
 
-  const onMouseOver = (event: Event) => {
+  const onMouseOver = (event: MouseEvent) => {
     const card = carouselCardFromTarget(event.target);
     if (!card) return;
     schedule(card);
   };
 
-  const onFocusIn = (event: Event) => {
+  const onFocusIn = (event: FocusEvent) => {
     const card = carouselCardFromTarget(event.target);
     if (!card) return;
     schedule(card);

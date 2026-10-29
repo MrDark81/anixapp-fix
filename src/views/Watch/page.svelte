@@ -1,7 +1,6 @@
 <script lang="ts">
   import { onMount, tick, untrack } from 'svelte';
   import { getWatchParams } from '../../router';
-  import type { LobbyPlaybackPayload } from '../../types/electron';
   import { getCurrentRoomId, sendLobbyChat, isLobbyAwaitingPlayerSync, notifyFluoPlayerSynced, canLobbyLocalCommand } from '../../services/lobby-state';
   import { logLobbyAction, snapshotPlayback } from '../../services/lobby-action-log';
   import { getFluoPlayer, installWindowFluo, sendFluoPreviewFrame } from '../../fluo';
@@ -16,6 +15,18 @@
   import { episodeHistoryLabel } from '../../utils/episode-display';
   import { rememberVideoCdnFromUrl, syncExtraVideoHostsToMain } from '../../utils/extra-video-hosts';
   import { sortDubbersPinnedFirst, readLastEpisodeTypeUpdateId } from '../../utils/dubber-meta';
+
+  type LobbyBarrierPlaybackPayload = Record<string, unknown> & {
+    releaseId?: string | number;
+    sourceId?: string | number;
+    ep?: string | number;
+    dubberId?: string | number | null;
+    dubberName?: string | null;
+    title?: string | null;
+    sourceName?: string | null;
+    currentTime?: number;
+    paused?: boolean;
+  };
   import {
     getCachedDubbers,
     setCachedDubbers,
@@ -4194,7 +4205,7 @@
         lobbySyncAwaiting = true;
         isApplyingSync = true;
         const d = e.detail as {
-          playback?: LobbyPlaybackPayload | null;
+          playback?: LobbyBarrierPlaybackPayload | null;
           reason?: 'join' | 'episode' | 'buffer';
           joinerPeerId?: string | null;
         } | null;

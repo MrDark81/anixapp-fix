@@ -2,17 +2,7 @@
   "format": 1,
   "baselineRef": "main@d260e4610fe28bbd8ea9bfc35cf80c9fc3f8229c; ESLint output from Windows test run 10",
   "diagnostics": [
-    {
-      "file": "electron/windows/player.js",
-      "ruleId": "no-useless-escape",
-      "message": "Unnecessary escape character: \\..",
-      "count": 1
-    },
-    {
-      "file": "electron/windows/player.js",
-      "ruleId": "no-useless-escape",
-      "message": "Unnecessary escape character: \\/.",
-      "count": 1
-    }
+    {"file":"electron/windows/player.js","ruleId":"no-useless-escape","message":"Unnecessary escape character: \\..","count":1},
+    {"file":"electron/windows/player.js","ruleId":"no-useless-escape","message":"Unnecessary escape character: \\/.","count":1}
   ]
 }

@@ -34,7 +34,6 @@
           <p class="offline-card__server-desc">Выберите другой эндпоинт — пинг обновляется автоматически.</p>
           <UiV2EndpointSelect
             label=""
-            placeholder="Выберите сервер"
             disabled={switching}
             showAd={false}
             onChange={changeEndpoint}

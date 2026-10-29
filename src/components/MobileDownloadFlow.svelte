@@ -64,7 +64,12 @@
 
   async function loadDubbers() {
     try {
-      const res = (await window.anixApi.release.getDubbers(releaseId)) as { types?: Array<Record<string, unknown>> };
+      const api = window.anixApi;
+      if (!api) {
+        error = 'API недоступен';
+        return;
+      }
+      const res = (await api.release.getDubbers(releaseId)) as { types?: Array<Record<string, unknown>> };
       dubbers = (res?.types ?? []).map((t) => ({
         id: num(t.id),
         name: String(t.name ?? ''),
@@ -104,7 +109,12 @@
     epsLoading = true;
     episodes = [];
     try {
-      const res = (await window.anixApi.release.getEpisodes(releaseId, dubberId, id)) as { episodes?: Array<{ position: number; name?: string; url?: string }> };
+      const api = window.anixApi;
+      if (!api) {
+        error = 'API недоступен';
+        return;
+      }
+      const res = (await api.release.getEpisodes(releaseId, dubberId, id)) as { episodes?: Array<{ position: number; name?: string; url?: string }> };
       episodes = (res?.episodes ?? [])
         .filter((e) => !!e?.url)
         .map((e) => ({ position: e.position, name: e.name || `${e.position} серия`, url: e.url as string }));

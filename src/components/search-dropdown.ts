@@ -79,6 +79,7 @@ export function openSearchDropdown(
     activeClose = null;
     return () => {};
   }
+  const activeScrollEl = scrollEl;
 
   dropdown.appendChild(page);
 
@@ -102,8 +103,8 @@ export function openSearchDropdown(
 
   function render(): void {
     const q = input.value.trim();
-    scrollEl.innerHTML = buildContent(q || '', history);
-    scrollEl.querySelectorAll('.search-dropdown__history-item').forEach((btn) => {
+    activeScrollEl.innerHTML = buildContent(q || '', history);
+    activeScrollEl.querySelectorAll('.search-dropdown__history-item').forEach((btn) => {
       btn.addEventListener('click', (e) => {
         e.preventDefault();
         // Capture textContent before close() removes the element from DOM.
@@ -114,7 +115,7 @@ export function openSearchDropdown(
     });
 
     // Если после рендера нет ни одного элемента — скрываем контейнер полностью
-    if (!scrollEl.innerHTML.trim()) {
+    if (!activeScrollEl.innerHTML.trim()) {
       dropdown.style.display = 'none';
     } else {
       dropdown.style.display = 'block';

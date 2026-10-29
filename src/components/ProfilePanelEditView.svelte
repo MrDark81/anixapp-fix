@@ -1074,7 +1074,7 @@
           const res = await window.anixApi?.search?.profiles?.(val, 0);
           if (seq !== loginCheckSeq) return;
           const rows = Array.isArray(res?.content) ? res.content : [];
-          const taken = rows.some((row) => {
+          const taken = rows.some((row: unknown) => {
             const p = row as { id?: number; login?: string };
             return String(p.login ?? '').toLowerCase() === val.toLowerCase()
               && Number(p.id) !== id;

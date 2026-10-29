@@ -658,7 +658,7 @@
         arm.mode = 'idle';
       }
 
-      if (arm.mode === 'recoil') {
+      if ((arm.mode as string) === 'recoil') {
         tx = sh.x + arm.side * 14;
         ty = sh.y + 20;
         arm.mode = 'idle';

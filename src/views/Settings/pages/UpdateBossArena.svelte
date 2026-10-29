@@ -652,13 +652,15 @@
             arm.impactDone = false;
           }
         }
-      } else if (arm.mode === 'recoil') {
-        tx = sh.x + arm.side * 14;
-        ty = sh.y + 20;
-        arm.mode = 'idle';
       } else {
         tx = sh.x + (px - sh.x) * 0.35 + arm.side * 8;
         ty = sh.y + Math.min(py, sh.y + half * 1.2) * 0.15 + half * 0.35;
+        arm.mode = 'idle';
+      }
+
+      if (arm.mode === 'recoil') {
+        tx = sh.x + arm.side * 14;
+        ty = sh.y + 20;
         arm.mode = 'idle';
       }
 

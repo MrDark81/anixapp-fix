@@ -307,44 +307,6 @@ document.getElementById('tog-right')?.addEventListener('click', () => {
 });
 
 // ── Mode groups UI ─────────────────────────────────────────────────────────────
-function createCancellableRenderVideo(video: HTMLVideoElement): { video: HTMLVideoElement; stop: () => void } {
-  let stopped = false;
-  const pendingCallbacks = new Set<number>();
-  const requestFrame = video.requestVideoFrameCallback.bind(video);
-  const cancelFrame = video.cancelVideoFrameCallback.bind(video);
-  const renderVideo = new Proxy(video, {
-    get(target, property) {
-      if (property === 'requestVideoFrameCallback') {
-        return (callback: VideoFrameRequestCallback): number => {
-          if (stopped) return 0;
-          let handle = 0;
-          handle = requestFrame((now, metadata) => {
-            pendingCallbacks.delete(handle);
-            if (!stopped) callback(now, metadata);
-          });
-          pendingCallbacks.add(handle);
-          return handle;
-        };
-      }
-      const value = Reflect.get(target, property, target);
-      return typeof value === 'function' ? value.bind(target) : value;
-    },
-    set(target, property, value) {
-      return Reflect.set(target, property, value, target);
-    },
-  });
-
-  return {
-    video: renderVideo,
-    stop() {
-      if (stopped) return;
-      stopped = true;
-      for (const handle of pendingCallbacks) cancelFrame(handle);
-      pendingCallbacks.clear();
-    },
-  };
-}
-
 function buildModeGroups() {
   modeGroups.innerHTML = '';
   MODE_GROUPS.forEach(group => {
@@ -666,10 +628,9 @@ async function applyUpscale() {
   canvasEl.hidden = false;
   const ModeClass = MODE_MAP[currentModeId] ?? ModeB;
 
-  const cancellableVideo = createCancellableRenderVideo(videoEl);
   try {
     await anime4kRender({
-      video: cancellableVideo.video,
+      video: videoEl,
       canvas: canvasEl,
       pipelineBuilder: (device: GPUDevice, inputTexture: GPUTexture) => {
         const native = { width: vw, height: vh };
@@ -677,11 +638,11 @@ async function applyUpscale() {
         return [new ModeClass({ device, inputTexture, nativeDimensions: native, targetDimensions: t }) as any];
       },
     });
-    upscaleStopFn = cancellableVideo.stop;
+    // anime4kRender returns Promise<void>; keep the original preview lifecycle.
+    upscaleStopFn = null;
     statusEl.textContent = '✓ ' + m.label;
     showSplit(m.label);
   } catch (err) {
-    cancellableVideo.stop();
     console.error('[Anime4K]', err);
     canvasEl.hidden = true;
     splitEl.hidden = true;

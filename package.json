@@ -22,7 +22,7 @@
         "rebuild:native": "electron-rebuild -f",
         "electron:dev": "concurrently \"vite\" \"wait-on http://127.0.0.1:5173 && cross-env NODE_ENV=development electron .\"",
         "electron:dev-prev": "concurrently -k \"cross-env ANIXAPP_DEV_PORT=5175 vite\" \"wait-on http://127.0.0.1:5175 && cross-env NODE_ENV=development ANIXAPP_DEV_PREV=1 ANIXAPP_DEV_PORT=5175 electron .\"",
-        "dev:tv":"cross-env VITE_TV_MODE=1 ANIXAPP_DEV_PORT=5174 vite",
+        "dev:tv": "cross-env VITE_TV_MODE=1 ANIXAPP_DEV_PORT=5174 vite",
         "electron:dev-tv": "concurrently -k \"cross-env VITE_TV_MODE=1 ANIXAPP_DEV_PORT=5174 vite\" \"wait-on http://127.0.0.1:5174 && cross-env NODE_ENV=development ANIXAPP_TV=1 ANIXAPP_DEV_PORT=5174 electron .\"",
         "build:tv:vite": "cross-env VITE_TV_MODE=1 vite build",
         "build:tv:web": "cross-env VITE_TV_MODE=1 ANIXAPP_OUT_DIR=dist-tv-web ANIXAPP_WEB_BASE=/ vite build",
@@ -42,7 +42,7 @@
         "lint:electron": "eslint electron",
         "lint:scss": "stylelint \"src/**/*.{scss,css}\" \"src/**/*.svelte\"",
         "lint:fix": "eslint . --fix && stylelint \"src/**/*.{scss,css}\" \"src/**/*.svelte\" --fix",
-        "check": "svelte-check --tsconfig ./tsconfig.json --tsgo && npm run lint"
+        "check": "svelte-check --tsconfig ./tsconfig.json && npm run lint"
     },
     "keywords": [
         "anime",

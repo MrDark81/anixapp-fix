@@ -74,11 +74,12 @@ export async function ensureChannelReportReasons(force = false): Promise<FeedArt
             const rec = row as FeedArticleReportReason;
             const id = Number(rec.id);
             if (!Number.isFinite(id) || id <= 0) return null;
+            const title = rec.title ?? rec.name ?? rec.text;
             return {
               id,
-              title: rec.title ?? rec.name ?? rec.text,
-              name: rec.name,
-              text: rec.text,
+              ...(title === undefined ? {} : { title }),
+              ...(rec.name === undefined ? {} : { name: rec.name }),
+              ...(rec.text === undefined ? {} : { text: rec.text }),
             } satisfies FeedArticleReportReason;
           })
           .filter((x): x is FeedArticleReportReason => x != null);

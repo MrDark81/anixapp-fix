@@ -47,11 +47,12 @@ export async function fetchSchedule(force = false): Promise<Record<string, Relea
     return scheduleCache.data;
   }
   if (!force && scheduleInflight) return scheduleInflight;
-  if (!window.anixApi?.release?.schedule) {
+  const api = window.anixApi?.release;
+  if (!api?.schedule) {
     throw new Error('API недоступен');
   }
   scheduleInflight = (async () => {
-    const data = await window.anixApi.release.schedule() as Record<string, unknown>;
+    const data = await api.schedule() as Record<string, unknown>;
     const mapped = mapScheduleResponse(data);
     scheduleCache = { at: Date.now(), data: mapped };
     return mapped;

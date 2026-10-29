@@ -272,8 +272,8 @@
           };
         }
         releaseResults = append
-          ? [...releaseResults, ...content.map(mapReleaseRawToCard)]
-          : content.map(mapReleaseRawToCard);
+          ? [...releaseResults, ...content.map((raw) => mapReleaseRawToCard(raw))]
+          : content.map((raw) => mapReleaseRawToCard(raw));
       } else if (currentTab === 'profiles') {
         profileResults = append ? [...profileResults, ...content] : content;
       } else {

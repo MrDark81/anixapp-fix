@@ -119,7 +119,8 @@ export function pushFeedBrowseChannel(channel: FeedChannel | null | undefined): 
 }
 
 export function pushFeedBrowsePost(article: FeedArticle | null | undefined): FeedBrowseHistoryItem[] {
-  const id = Number(article?.id ?? 0);
+  if (!article) return readList();
+  const id = Number(article.id);
   if (!(id > 0)) return readList();
   const preview = articlePreviewText(article)?.trim();
   const channelTitle = article?.channel?.title?.trim();

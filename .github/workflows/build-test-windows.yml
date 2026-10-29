@@ -1,0 +1,131 @@
+name: Windows Test Build
+
+on:
+  # Build and run regression checks for every pushed branch.
+  push:
+    branches:
+      - '**'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build-windows:
+    name: Static regression checks and Windows installer
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: yarn
+
+      - name: Install dependencies
+        id: install-dependencies
+        run: yarn install --frozen-lockfile
+
+      # The application currently declares TypeScript 7, which svelte-check's
+      # stable compiler API does not support. Install TS 6 only in this runner;
+      # the repository package.json and yarn.lock remain identical to upstream.
+      - name: Prepare TypeScript 6 for Svelte diagnostics
+        id: prepare-typescript
+        if: steps.install-dependencies.outcome == 'success'
+        continue-on-error: true
+        shell: pwsh
+        run: |
+          $tempRoot = Join-Path $env:RUNNER_TEMP 'anixapp-svelte-typescript'
+          New-Item -ItemType Directory -Force -Path $tempRoot | Out-Null
+          '{"name":"anixapp-svelte-check-runtime","version":"1.0.0","private":true}' |
+            Set-Content -LiteralPath (Join-Path $tempRoot 'package.json') -Encoding utf8
+          npm install --prefix "$tempRoot" typescript@6.0.3 --no-save --no-audit --no-fund --legacy-peer-deps
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          $source = Join-Path $tempRoot 'node_modules\typescript'
+          $target = Join-Path $env:GITHUB_WORKSPACE 'node_modules\typescript'
+          $backup = Join-Path $env:RUNNER_TEMP 'anixapp-original-typescript'
+          if (Test-Path $backup) { Remove-Item -LiteralPath $backup -Recurse -Force }
+          if (Test-Path $target) { Copy-Item -LiteralPath $target -Destination $backup -Recurse -Force }
+          if (Test-Path $target) { Remove-Item -LiteralPath $target -Recurse -Force }
+          Copy-Item -LiteralPath $source -Destination $target -Recurse -Force
+          node -e "console.log('Svelte-check TypeScript:', require('./node_modules/typescript/package.json').version)"
+
+      - name: Collect Svelte and TypeScript diagnostics
+        id: svelte-check
+        if: steps.install-dependencies.outcome == 'success' && steps.prepare-typescript.outcome == 'success'
+        continue-on-error: true
+        shell: pwsh
+        run: |
+          $log = Join-Path $env:RUNNER_TEMP 'svelte-check-output.log'
+          yarn run svelte-check --tsconfig ./tsconfig.json 2>&1 | Tee-Object -FilePath $log
+          # Existing upstream diagnostics are compared against a baseline below.
+          exit 0
+
+      - name: Check Svelte and TypeScript against upstream baseline
+        id: svelte-baseline
+        if: always() && steps.install-dependencies.outcome == 'success' && steps.prepare-typescript.outcome == 'success'
+        continue-on-error: true
+        run: node scripts/check-static-baseline.mjs svelte "$env:RUNNER_TEMP\svelte-check-output.log" .github/baselines/svelte-check-errors.json
+
+      - name: Check ESLint errors against upstream baseline
+        id: eslint-baseline
+        if: steps.install-dependencies.outcome == 'success'
+        continue-on-error: true
+        run: node scripts/check-static-baseline.mjs eslint .github/baselines/eslint-errors.json
+
+      - name: Run Stylelint and encoding check
+        id: stylelint
+        if: steps.install-dependencies.outcome == 'success'
+        continue-on-error: true
+        run: yarn run lint:scss && yarn run check:mojibake
+
+      - name: Restore application TypeScript before packaging
+        id: restore-typescript
+        if: always() && steps.install-dependencies.outcome == 'success'
+        continue-on-error: true
+        shell: pwsh
+        run: |
+          $backup = Join-Path $env:RUNNER_TEMP 'anixapp-original-typescript'
+          $target = Join-Path $env:GITHUB_WORKSPACE 'node_modules\typescript'
+          if (-not (Test-Path $backup)) {
+            Write-Error 'Original TypeScript backup is missing; refusing to package with an unknown compiler version.'
+            exit 1
+          }
+          if (Test-Path $target) { Remove-Item -LiteralPath $target -Recurse -Force }
+          Copy-Item -LiteralPath $backup -Destination $target -Recurse -Force
+          node -e "console.log('Build TypeScript:', require('./node_modules/typescript/package.json').version)"
+
+
+      - name: Build Windows test installer
+        id: build-windows
+        if: steps.install-dependencies.outcome == 'success' && steps.restore-typescript.outcome == 'success'
+        run: yarn build:win
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          VITE_GIPHY_API_KEY: ${{ secrets.VITE_GIPHY_API_KEY }}
+          # Placeholder keys allow packaging without real secrets. OAuth and
+          # the backup proxy won't authenticate in this diagnostic artifact.
+          FIREBASE_API_KEY: 'TEST_BUILD_PLACEHOLDER_NOT_A_REAL_KEY'
+          ANIXART_PROXY_APP_KEY: 'TEST_BUILD_PLACEHOLDER_NOT_A_REAL_KEY'
+          ANIXBACK_PROXY_TARGET: ${{ secrets.ANIXBACK_PROXY_TARGET }}
+
+      - name: Upload Windows build
+        if: steps.build-windows.outcome == 'success'
+        uses: actions/upload-artifact@v4
+        with:
+          name: AnixApp-Windows-Test-${{ github.run_number }}
+          path: |
+            release/*.exe
+            release/latest.yml
+            release/*.blockmap
+          if-no-files-found: error
+          retention-days: 7
+
+      - name: Mark run failed if static regressions were detected
+        if: always() && (steps.prepare-typescript.outcome == 'failure' || steps.restore-typescript.outcome == 'failure' || steps.svelte-baseline.outcome == 'failure' || steps.eslint-baseline.outcome == 'failure' || steps.stylelint.outcome == 'failure')
+        shell: pwsh
+        run: |
+          Write-Error "New static diagnostics were detected relative to the upstream baseline. Review the static-check steps; the test build was still attempted."

@@ -177,9 +177,9 @@
     `data:image/svg+xml,${encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16"><rect width="16" height="16" rx="3" fill="#3b82f6"/><rect x="3" y="3" width="4" height="4" rx="0.6" fill="#fff"/><rect x="9" y="3" width="4" height="4" rx="0.6" fill="#fff"/><rect x="3" y="9" width="4" height="4" rx="0.6" fill="#fff"/><rect x="9" y="9" width="4" height="4" rx="0.6" fill="#fff"/></svg>')}`;
 
   const UIV2_RELEASE_FRIENDS_DEMO: UiV2ReleaseFriend[] = [
-    { id: 1, login: 'CMAAAK', avatar: UIV2_FEED_POST_DEMO[0].channel.avatar, isOnline: true, badgeUrl: UIV2_DEMO_BADGE_RED, badgeName: 'Значок', status: 'watching' },
-    { id: 2, login: 'Nassc', avatar: UIV2_FEED_POST_DEMO[1].channel.avatar, isOnline: true, badgeUrl: UIV2_DEMO_BADGE_GRID, badgeName: 'Значок', status: 'watching' },
-    { id: 3, login: 'strannow', avatar: UIV2_FEED_POST_DEMO[2].channel.avatar, badgeUrl: UIV2_DEMO_BADGE_GRID, badgeName: 'Значок', status: 'watching' },
+    { id: 1, login: 'CMAAAK', avatar: UIV2_FEED_POST_DEMO[0].channel.avatar ?? undefined, isOnline: true, badgeUrl: UIV2_DEMO_BADGE_RED, badgeName: 'Значок', status: 'watching' },
+    { id: 2, login: 'Nassc', avatar: UIV2_FEED_POST_DEMO[1].channel.avatar ?? undefined, isOnline: true, badgeUrl: UIV2_DEMO_BADGE_GRID, badgeName: 'Значок', status: 'watching' },
+    { id: 3, login: 'strannow', avatar: UIV2_FEED_POST_DEMO[2].channel.avatar ?? undefined, badgeUrl: UIV2_DEMO_BADGE_GRID, badgeName: 'Значок', status: 'watching' },
     { id: 4, login: 'TheFatMouseTool', status: 'watching' },
     { id: 5, login: 'DMax', status: 'planned' },
     { id: 6, login: 'MysteryMarshak', status: 'planned' },

@@ -28,7 +28,7 @@
     MONTAGE_TOTAL_SEC,
   } from '../../utils/heroMontage';
 
-  export interface OverviewEditorPayload {
+  interface OverviewEditorPayload {
     bannerId: number;
     releaseId: number | null;
     title: string;

@@ -151,8 +151,15 @@
   );
   const selectedIconId = $derived(selected?.type === 'image' ? selected.iconId ?? '' : '');
 
-  const box = {
-    view: { version: 2 as const, width: 1, height: 1, rootId: '', nodes: {} },
+  const box: {
+    view: AdDesignStates;
+    variant: Variant;
+    livePreview: boolean;
+    zoom: number;
+    pointerHover: boolean;
+    fxAnimated: boolean;
+  } = {
+    view,
     variant: 'rest' as Variant,
     livePreview: false,
     zoom: 1,

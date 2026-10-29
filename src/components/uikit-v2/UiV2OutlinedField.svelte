@@ -1,6 +1,7 @@
 <script lang="ts">
   import { iconEye, iconEyeOff } from '../icons';
   import { tick } from 'svelte';
+  import type { HTMLInputAttributes } from 'svelte/elements';
 
   type HintTone = 'default' | 'error' | 'ok';
 
@@ -8,7 +9,7 @@
     label: string;
     value?: string;
     type?: 'text' | 'email' | 'password' | 'url' | 'search';
-    autocomplete?: string;
+    autocomplete?: HTMLInputAttributes['autocomplete'];
     inputmode?: 'text' | 'email' | 'numeric' | 'tel' | 'url' | 'search' | 'none' | 'decimal';
     name?: string;
     maxlength?: number;

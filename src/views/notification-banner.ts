@@ -170,6 +170,7 @@ export function mountNotificationBanner(root: HTMLElement): void {
     root.textContent = 'Notification bridge недоступен.';
     return;
   }
+  const activeBridge: NotificationBannerBridge = bridge;
 
   document.documentElement.dataset.themeMode = 'dark';
   document.documentElement.style.colorScheme = 'dark';
@@ -211,7 +212,7 @@ export function mountNotificationBanner(root: HTMLElement): void {
       peakHeight = height;
     }
     if (heightRaf) cancelAnimationFrame(heightRaf);
-    heightRaf = requestAnimationFrame(() => bridge.setHeight(peakHeight));
+    heightRaf = requestAnimationFrame(() => activeBridge.setHeight(peakHeight));
   }
 
   function buildItem(item: NotificationBannerItem): HTMLElement {
@@ -333,20 +334,20 @@ export function mountNotificationBanner(root: HTMLElement): void {
       el.appendChild(main);
     }
 
-    el.appendChild(makeClose(bridge, item.id));
+    el.appendChild(makeClose(activeBridge, item.id));
     el.addEventListener('click', () => {
-      bridge.click({ id: item.id, url: item.url ?? null });
+      activeBridge.click({ id: item.id, url: item.url ?? null });
     });
 
     shell.appendChild(el);
     /* hit-test на shell: parent с pointer-events:none ломал forward в Electron */
     shell.addEventListener('mouseenter', () => {
-      bridge.setIgnoreMouse?.(false);
-      bridge.pause?.(item.id);
+      activeBridge.setIgnoreMouse?.(false);
+      activeBridge.pause?.(item.id);
     });
     shell.addEventListener('mouseleave', () => {
-      bridge.setIgnoreMouse?.(true);
-      bridge.resume?.(item.id);
+      activeBridge.setIgnoreMouse?.(true);
+      activeBridge.resume?.(item.id);
     });
     return shell;
   }
@@ -397,7 +398,7 @@ export function mountNotificationBanner(root: HTMLElement): void {
     if (stackExiting) return;
     stackExiting = true;
     stack.classList.add('nb-stack--exiting');
-    bridge.setIgnoreMouse?.(true);
+    activeBridge.setIgnoreMouse?.(true);
     for (const [id] of rendered) leaving.add(id);
     window.setTimeout(() => {
       for (const el of [...rendered.values()]) el.remove();
@@ -527,6 +528,6 @@ export function mountNotificationBanner(root: HTMLElement): void {
     }
   }
 
-  bridge.onUpdate(update);
-  bridge.ready();
+  activeBridge.onUpdate(update);
+  activeBridge.ready();
 }

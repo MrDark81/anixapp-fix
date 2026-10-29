@@ -174,6 +174,7 @@ async function loadKodikPlayer(embedUrl: string) {
   let links = null as ReturnType<typeof decryptKodikLinks> | null;
   try {
     links = await fetchKodikFtorLinks(
+      pageUrl,
       (videoInfo || {}) as { type: string; id: string; hash: string },
     );
   } catch {

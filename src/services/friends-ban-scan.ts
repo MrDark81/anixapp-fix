@@ -50,12 +50,11 @@ export function pickBanFields(profile: Record<string, unknown>): ProfileBanField
   };
 }
 
-export function mergeBanFields(
-  friend: Record<string, unknown>,
+export function mergeBanFields<T extends Record<string, unknown>>(
+  friend: T,
   fields: ProfileBanFields | undefined,
-): Record<string, unknown> {
-  if (!fields) return friend;
-  return { ...friend, ...fields };
+): T & Partial<ProfileBanFields> {
+  return { ...friend, ...fields } as T & Partial<ProfileBanFields>;
 }
 
 export function isFriendBanChecked(

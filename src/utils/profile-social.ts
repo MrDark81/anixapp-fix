@@ -1,3 +1,5 @@
+import { requestOpenExternal } from './external-link';
+
 export type ProfileSocialPages = {
   vk_page?: string | null;
   tg_page?: string | null;

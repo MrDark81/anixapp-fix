@@ -82,7 +82,10 @@ export async function saveHomeCustomTab(data: HomeCustomTabData): Promise<void> 
   const api = homeApi();
   if (!api) return;
   const payload = serializeHomeCustomTabData(data);
-  await api.setCustomTab(payload);
+  await api.setCustomTab({
+    ...payload,
+    filter: payload.filter ? { ...payload.filter } : null,
+  });
   window.dispatchEvent(new CustomEvent('anix:homeCustomTabChanged'));
 }
 

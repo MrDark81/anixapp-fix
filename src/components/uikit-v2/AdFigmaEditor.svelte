@@ -940,7 +940,7 @@
     return null;
   }
 
-  function liveCrtEffect(): Extract<AdEffect, { type: 'crt' }> | null {
+  function liveCrtEffect(): (AdEffect & { type: 'crt' }) | null {
     const fx = selected?.effects?.find((e) => e.type === 'crt');
     return fx && fx.type === 'crt' ? fx : null;
   }

@@ -10,6 +10,7 @@ export type LobbyWaitingOverlayPayload =
   | null
   | {
       mode: 'peer' | 'localBuffering' | 'selfJoin';
+      label?: string;
       login?: string;
       avatar?: string | null;
       peerId?: string | null;
@@ -477,6 +478,8 @@ declare global {
       lobbyPlayerSynced?: (currentTime?: number) => void;
       /** Главное → плеер: оверлей «ожидаем пользователя» */
       sendLobbyWaitingOverlayToPlayer?: (payload: LobbyWaitingOverlayPayload | null) => void;
+      sendLobbyBarrierSyncToPlayer?: (playback: LobbyPlaybackPayload | null) => void;
+      sendLobbySyncResumeToPlayer?: () => void;
       // Discord Rich Presence
       discordUpdate?: (data: DiscordUpdatePayload) => void;
       // Theme editor

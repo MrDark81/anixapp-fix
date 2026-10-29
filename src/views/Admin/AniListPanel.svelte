@@ -1006,8 +1006,8 @@ query ($mediaId: Int, $page: Int) {
   }
 
   function openExternal(url: string) {
-    if (window.electron?.shell?.openExternal) {
-      window.electron.shell.openExternal(url);
+    if (window.electron?.openExternal) {
+      window.electron.openExternal(url);
     } else {
       window.open(url, '_blank', 'noopener');
     }

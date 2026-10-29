@@ -321,7 +321,7 @@ export async function resolveEpisodeUrlWithRetry(
   const sourceWebPlayer = typeof window !== 'undefined' && /[?&]webplayer=1/.test(window.location.search);
   const retryableSocial = /vk\.com|vkvideo|rutube\.ru|ok\.ru|studiomir|mail\.ru|myvi\.|secvideo1|csst\.online|sstrge|sovetromantica/i.test(abs);
   const attempts = iframeOnly || sourceWebPlayer ? 1 : maxAttempts;
-  let lastResult = {
+  let lastResult: Awaited<ReturnType<typeof resolveEpisodeUrl>> = {
     playUrl: abs,
     useVideo: false,
     qualityMap: {} as Record<string, string>,

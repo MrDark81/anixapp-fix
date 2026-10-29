@@ -799,7 +799,7 @@ export function createBrowserAnixBridge() {
           profileStatusNotificationPreferences: list,
         });
       } catch (err) {
-        if (String(err?.message || err || '').includes('empty response')) return { code: 0 };
+        if (String(err instanceof Error ? err.message : err || '').includes('empty response')) return { code: 0 };
         throw err;
       }
     }),
@@ -812,7 +812,7 @@ export function createBrowserAnixBridge() {
           profileTypeNotificationPreferences: list,
         });
       } catch (err) {
-        if (String(err?.message || err || '').includes('empty response')) return { code: 0 };
+        if (String(err instanceof Error ? err.message : err || '').includes('empty response')) return { code: 0 };
         throw err;
       }
     }),
@@ -828,7 +828,7 @@ export function createBrowserAnixBridge() {
           profile_release_type_notification_preferences: list,
         });
       } catch (err) {
-        if (String(err?.message || err || '').includes('empty response')) return { code: 0 };
+        if (String(err instanceof Error ? err.message : err || '').includes('empty response')) return { code: 0 };
         throw err;
       }
     }),

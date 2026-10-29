@@ -38,6 +38,7 @@ export interface SourceItem {
 }
 
 export interface LobbyParticipant {
+  id?: number | string;
   login:   string;
   avatar?: string | null;
   peerId?: string | null;
@@ -54,6 +55,7 @@ export interface ProposalData {
 
 export interface LobbyActivityEntry {
   type:    string;
+  peerId?: string | null;
   login:   string;
   avatar?: string | null;
 }

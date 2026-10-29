@@ -158,9 +158,11 @@ async function resolveKodikEmbedUrl(embedUrl: string): Promise<string> {
   return url;
 }
 
+type KodikVideoInfo = { type?: string; id?: string; hash?: string } | null;
+
 async function loadKodikPlayer(embedUrl: string) {
   const pageUrl = await resolveKodikEmbedUrl(embedUrl);
-  let videoInfo = parseKodikLinkFromUrl(pageUrl);
+  let videoInfo: KodikVideoInfo = parseKodikLinkFromUrl(pageUrl);
   const html = await fetchText(pageUrl, {
     Referer: KODIK_PLAYER_ORIGIN,
     Accept: 'text/html,application/xhtml+xml',

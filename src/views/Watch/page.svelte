@@ -1032,7 +1032,7 @@
     if (!video || !canvas) return;
     // Пока нет стабильных кадров — не трогаем UI (иначе чёрный canvas мигает поверх видео).
     if (video.videoWidth < 2 || video.videoHeight < 2) return;
-    if (video.readyState < HTMLVideoElement.HAVE_FUTURE_DATA) return;
+    if (video.readyState < HTMLMediaElement.HAVE_FUTURE_DATA) return;
 
     // Уже активен с тем же mode/target/aspect/буфером — не рестартим (пауза/play).
     const wantH = anime4kTargetHeight(player.upscaleTargetRes);

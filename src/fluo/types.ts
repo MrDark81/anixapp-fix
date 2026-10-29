@@ -46,7 +46,7 @@ export function fluoPlaybackControlMode(
 }
 
 export function fluoAnimeSelectModeOf(
-  s: (Partial<FluoRoomSettings> & { episodeVoteEnabled?: boolean; controlMode?: string }) | null | undefined,
+  s: (Omit<Partial<FluoRoomSettings>, 'controlMode'> & { episodeVoteEnabled?: boolean; controlMode?: string }) | null | undefined,
 ): FluoAnimeSelectMode {
   const raw = s?.animeSelectMode;
   if (raw === 'host' || raw === 'everyone' || raw === 'vote') return raw;

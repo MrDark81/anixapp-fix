@@ -1,3 +1,5 @@
+export {};
+
 /**
  * Скрытое окно для проигрывания звуков уведомлений.
  * Слушает IPC notification-sound:play с { fileUrl, volume, soundId }.

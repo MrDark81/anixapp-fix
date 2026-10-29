@@ -56,7 +56,7 @@ const MODES: { id: number; label: string; desc: string; group: string }[] = [
   { id: 13, label: 'GANx4UUL', desc: 'Upscale ×4', group: 'Upscale' },
 ];
 
-const MODE_MAP: Record<number, new (opts: object) => unknown> = {
+const MODE_MAP: Record<number, new (opts: any) => unknown> = {
   0: DoG, 1: BilateralMean, 2: CNNM, 3: CNNSoftM, 4: CNNSoftVL,
   5: CNNVL, 6: CNNUL, 7: GANUUL,
   8: CNNx2M, 9: CNNx2VL, 10: DenoiseCNNx2VL, 11: CNNx2UL,

@@ -46,6 +46,9 @@ jobs:
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           $source = Join-Path $tempRoot 'node_modules\typescript'
           $target = Join-Path $env:GITHUB_WORKSPACE 'node_modules\typescript'
+          $backup = Join-Path $env:RUNNER_TEMP 'anixapp-original-typescript'
+          if (Test-Path $backup) { Remove-Item -LiteralPath $backup -Recurse -Force }
+          if (Test-Path $target) { Copy-Item -LiteralPath $target -Destination $backup -Recurse -Force }
           if (Test-Path $target) { Remove-Item -LiteralPath $target -Recurse -Force }
           Copy-Item -LiteralPath $source -Destination $target -Recurse -Force
           node -e "console.log('Svelte-check TypeScript:', require('./node_modules/typescript/package.json').version)"
@@ -79,9 +82,26 @@ jobs:
         continue-on-error: true
         run: yarn run lint:scss && yarn run check:mojibake
 
+      - name: Restore application TypeScript before packaging
+        id: restore-typescript
+        if: always() && steps.install-dependencies.outcome == 'success'
+        continue-on-error: true
+        shell: pwsh
+        run: |
+          $backup = Join-Path $env:RUNNER_TEMP 'anixapp-original-typescript'
+          $target = Join-Path $env:GITHUB_WORKSPACE 'node_modules\typescript'
+          if (-not (Test-Path $backup)) {
+            Write-Error 'Original TypeScript backup is missing; refusing to package with an unknown compiler version.'
+            exit 1
+          }
+          if (Test-Path $target) { Remove-Item -LiteralPath $target -Recurse -Force }
+          Copy-Item -LiteralPath $backup -Destination $target -Recurse -Force
+          node -e "console.log('Build TypeScript:', require('./node_modules/typescript/package.json').version)"
+
+
       - name: Build Windows test installer
         id: build-windows
-        if: steps.install-dependencies.outcome == 'success'
+        if: steps.install-dependencies.outcome == 'success' && steps.restore-typescript.outcome == 'success'
         run: yarn build:win
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -105,7 +125,7 @@ jobs:
           retention-days: 7
 
       - name: Mark run failed if static regressions were detected
-        if: always() && (steps.prepare-typescript.outcome == 'failure' || steps.svelte-baseline.outcome == 'failure' || steps.eslint-baseline.outcome == 'failure' || steps.stylelint.outcome == 'failure')
+        if: always() && (steps.prepare-typescript.outcome == 'failure' || steps.restore-typescript.outcome == 'failure' || steps.svelte-baseline.outcome == 'failure' || steps.eslint-baseline.outcome == 'failure' || steps.stylelint.outcome == 'failure')
         shell: pwsh
         run: |
           Write-Error "New static diagnostics were detected relative to the upstream baseline. Review the static-check steps; the test build was still attempted."

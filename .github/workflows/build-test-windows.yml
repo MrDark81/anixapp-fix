@@ -1,13 +1,12 @@
-
 name: Windows Test Build
 
 on:
-  # Проверять изменения при отправке коммитов в ветки.
+  # Automatically build every pushed branch, including test-windows.
   push:
     branches:
       - '**'
 
-  # Позволяет запускать сборку вручную, когда workflow доступен в default branch.
+  # Available for manual dispatch once this workflow exists on the default branch.
   workflow_dispatch:
 
 permissions:
@@ -29,12 +28,20 @@ jobs:
           cache: yarn
 
       - name: Install dependencies
+        id: install-dependencies
         run: yarn install --frozen-lockfile
 
+      # Keep diagnostics visible, but don't prevent a test installer from being
+      # produced when the current baseline check configuration is incompatible.
+      # A final step below still marks the overall run as failed.
       - name: Run static checks
+        id: static-checks
+        continue-on-error: true
         run: yarn run check
 
       - name: Build Windows installer
+        id: build-windows
+        if: steps.install-dependencies.outcome == 'success'
         run: yarn build:win
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -44,6 +51,7 @@ jobs:
           ANIXBACK_PROXY_TARGET: ${{ secrets.ANIXBACK_PROXY_TARGET }}
 
       - name: Upload Windows build
+        if: steps.build-windows.outcome == 'success'
         uses: actions/upload-artifact@v4
         with:
           name: AnixApp-Windows-Test-${{ github.run_number }}
@@ -53,3 +61,9 @@ jobs:
             release/*.blockmap
           if-no-files-found: error
           retention-days: 7
+
+      - name: Mark run failed if static checks failed
+        if: always() && steps.static-checks.outcome == 'failure'
+        shell: pwsh
+        run: |
+          Write-Error "Static checks failed. See the 'Run static checks' step for diagnostics. The test build was still attempted."

@@ -1098,7 +1098,7 @@
       if (!player.upscaleEnabled || !isGpuAvailable() || !player.useVideo) return;
       const v = videoEl;
       // HAVE_FUTURE_DATA + чуть буфера — меньше стартовых потерь кадров.
-      if (!v || v.videoWidth < 2 || v.readyState < HTMLVideoElement.HAVE_FUTURE_DATA) {
+      if (!v || v.videoWidth < 2 || v.readyState < HTMLMediaElement.HAVE_FUTURE_DATA) {
         if (upscaleRestartTries++ < 50) {
           upscaleRestartTimer = window.setTimeout(attempt, 100);
         }

@@ -615,7 +615,7 @@
 
   function onTap() {
     const now = Date.now();
-    const isDouble = now - lastTapAt < DOUBLE_TAP_MS && pZone !== 0 && pZone === lastTapZone;
+    const isDouble = now - lastTapAt < DOUBLE_TAP_MS && pZone === lastTapZone;
     const continuing = tapSeek && tapSeek.side === pZone && pZone !== 0;
     if (isDouble || continuing) {
       // двойное касание по краю — перемотка; панели остаются как были до первого касания

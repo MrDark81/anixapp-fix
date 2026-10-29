@@ -56,7 +56,7 @@ export const DISCORD_RPC_PAGE_KEYS: DiscordRpcPageKey[] = [
 export function defaultDiscordRpcSettings(): DiscordRpcSettings {
   const pages = Object.fromEntries(
     DISCORD_RPC_PAGE_KEYS.map((k) => [k, true]),
-  ) as DiscordRpcPageSettings;
+  ) as unknown as DiscordRpcPageSettings;
   return {
     ...pages,
     discordRpcEnabled: true,

@@ -31,12 +31,12 @@ jobs:
         id: install-dependencies
         run: yarn install --frozen-lockfile
 
-      # Svelte-check currently rejects this repository's TypeScript 7 setup.
-      # Keep that diagnostic visible while allowing a test installer to be built.
+      # Use Svelte-check's supported TypeScript 7 mode (TypeScript 6 API + TS7 native CLI).
+      # Keep diagnostics visible while allowing a test installer to be built.
       - name: Run Svelte and TypeScript checks
         id: svelte_check
         continue-on-error: true
-        run: yarn run svelte-check --tsconfig ./tsconfig.json
+        run: yarn run svelte-check --tsconfig ./tsconfig.json --tsgo
 
       - name: Run ESLint, Stylelint and encoding check
         id: lint

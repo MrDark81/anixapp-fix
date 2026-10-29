@@ -42,7 +42,7 @@
         "lint:electron": "eslint electron",
         "lint:scss": "stylelint \"src/**/*.{scss,css}\" \"src/**/*.svelte\"",
         "lint:fix": "eslint . --fix && stylelint \"src/**/*.{scss,css}\" \"src/**/*.svelte\" --fix",
-        "check": "svelte-check --tsconfig ./tsconfig.json && npm run lint"
+        "check": "svelte-check --tsconfig ./tsconfig.json --tsgo && npm run lint"
     },
     "keywords": [
         "anime",
@@ -60,6 +60,7 @@
         "@sveltejs/vite-plugin-svelte": "^7.3.1",
         "@typescript-eslint/eslint-plugin": "^8.50.1",
         "@typescript-eslint/parser": "^8.50.1",
+        "@typescript/native": "npm:typescript@7.0.2",
         "concurrently": "^10.0.5",
         "cross-env": "^10.1.0",
         "electron": "44.10.0",
@@ -75,7 +76,7 @@
         "stylelint-config-recommended-scss": "^14.1.0",
         "svelte": "^5.57.1",
         "svelte-check": "^4.7.6",
-        "typescript": "^7.0.2",
+        "typescript": "~6.0.3",
         "vite": "^8.3.3",
         "wait-on": "^9.5.1"
     },

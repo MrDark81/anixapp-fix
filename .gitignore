@@ -79,3 +79,6 @@ temp/
 
 dist-mobile/
 .anix-live.json
+
+# Generated Svelte-check output when using TypeScript 7 native diagnostics
+.svelte-check/
